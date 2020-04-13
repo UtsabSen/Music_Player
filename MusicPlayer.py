@@ -38,7 +38,7 @@ if __name__ == '__main__':
         volumeOffImg = PhotoImage(file="Images/Volume_Off.png")
         selectVolumeImg = PhotoImage(file="Images/Select_Volume.png")
         searchImg = PhotoImage(file="Images/Search.png")
-        starGif = PhotoImage(file="Images/Stars.gif")
+        # starGif = PhotoImage(file="Images/Stars.gif")
 
         # _________________Variables_________________
 
