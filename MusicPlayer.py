@@ -1,22 +1,32 @@
-import os
+import os, sys
 from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import *
 from pygame import mixer
+from pygame import time
+from mutagen.id3 import *
+from mutagen.mp3 import *
+from tkinter.ttk import Progressbar
 import random
+import threading
+import time as myt
+
+timer = 0
+
 
 if __name__ == '__main__':
     root = Tk()
-    root.geometry("340x520")
+    root.geometry("340x530")
     root.title("MUSIC")
     root.iconbitmap(r"Images/Music_Player.ico")
     root.resizable(False, False)
-    # root.minsize
 
+
+    # root.minsize
 
     # root.attributes("-alpha",0.92)
 
-    class MusicPlayer:
+    class MusicPlayer():
 
         # _________________Image Files_________________
 
@@ -45,12 +55,22 @@ if __name__ == '__main__':
         songsName = []
         # songLoader = []
         songsLoc = []
+        # songTitle = []
+        # songArtist = []
         myIndex = 0
         shuffleStatus = 0
         repeatStatus = 0
         prevIndex = 0
         backupVolume = 60
         initialiseWindow = 1
+        songsLength = 0
+        haltMusic = 0
+        prog = 0
+        exitStatus = 0
+        cur_Val = 0
+        isPaused = 0
+
+        global timer
 
         # insertIndex = 0
         # initialiseVolume = 1
@@ -139,15 +159,25 @@ if __name__ == '__main__':
             self.lbl_coverPic = Label(self.frameCover, image=self.coverImg)
             self.lbl_coverPic.pack()
 
-            self.frameTitle = Frame(root, bg="AQUA", height=30)
-            self.frameTitle.pack(fill=BOTH, expand=TRUE)
+            self.frameTitleArtist = Frame(root, bg="AQUA", height=30)
+            self.frameTitleArtist.pack(fill=BOTH, expand=TRUE)
 
-            self.frameArtist = Frame(root, bg="BLACK", height=20)
-            self.frameArtist.pack(fill=BOTH, expand=TRUE)
+            self.lbl_TitleArtist = Label(self.frameTitleArtist, text="", relief=FLAT)
+            self.lbl_TitleArtist.pack(fill=BOTH, expand=TRUE)
+
+            self.frameAlbum = Frame(root, bg="BLACK", height=20)
+            self.frameAlbum.pack(fill=BOTH, expand=TRUE)
+
+            self.lbl_Album = Label(self.frameAlbum, text="", relief=FLAT)
+            self.lbl_Album.pack(fill=BOTH, expand=TRUE)
 
             self.frameScrubbar = Frame(root, bg="GREEN", height=30)
             self.frameScrubbar.pack(fill=BOTH, expand=TRUE)
 
+            self.prgBar = Progressbar(self.frameScrubbar, length=350, orient=HORIZONTAL,
+                                      maximum=100,
+                                      value=0)
+            self.prgBar.pack()
 
             self.frameControl = Frame(root, bg="INDIGO", height=100)
             self.frameControl.pack(fill=BOTH, expand=TRUE)
@@ -168,8 +198,9 @@ if __name__ == '__main__':
             self.btn_play_pause.grid(row=0, column=2)
 
             self.btn_next = Button(self.frameControl, text="NEXT", image=self.nextImg, relief=FLAT, height=50, width=62,
-                                   command=self.nextSong)
+                                   command=lambda : self.nextSong(1))
             self.btn_next.grid(row=0, column=3)
+            # self.btn_next.bind("<Button-1>", lambda x : self.nextSong(1))
 
             self.btn_repeat = Button(self.frameControl, text="REAP", image=self.repeatNormImg, relief=FLAT, height=50,
                                      width=62,
@@ -200,6 +231,34 @@ if __name__ == '__main__':
             self.btn_Search = Button(self.frm_search, image=self.searchImg, relief=FLAT, command=self.searchAndPlay)
             self.btn_Search.pack()
 
+
+        # _________________Progress Bar Methods_________________
+
+        def progressInc(self):
+            try:
+                songLen = round(MP3(self.songsName[self.myIndex]).info.length)
+                while (self.prog <= songLen):
+                    if(self.exitStatus):
+                        return
+                    else:
+                        self.prgBar.config(value=(self.prog / songLen) * 100)
+                        self.prog += 1
+                        myt.sleep(1)
+            except:
+                pass
+
+        def progressStop(self):
+            self.exitStatus = 1
+            self.cur_Val = self.prog
+            self.prgBar.config(value=(self.prog/round(MP3(self.songsName[self.myIndex]).info.length))*100)
+
+        def progressResume(self):
+            self.exitStatus = 0
+            self.prog = self.cur_Val
+            self.progressTimer = threading.Timer(0, self.progressInc)
+            self.progressTimer.start()
+            # print("Hey")
+
         # _________________Shuffle Methods_________________
 
         def shuffleOn(self):
@@ -217,6 +276,11 @@ if __name__ == '__main__':
         # _________________Previous Methods_________________
 
         def previousSong(self):
+            self.exitStatus = 1
+            myt.sleep(1)
+            self.exitStatus = 0
+            self.prgBar.config(value=0)
+            self.prog = 0
             if (self.shuffleStatus == 0):
                 self.prevIndex = self.myIndex
                 try:
@@ -265,64 +329,147 @@ if __name__ == '__main__':
                 #     self.initialiseWindow = 0
                 #     self.myLibrary()
                 #     self.destroy_Lstbx()
+                try:
+                    self.timer.cancel()
+                except:
+                    pass
 
                 os.chdir(self.songsLoc[self.myIndex])
                 try:
+                    # print(self.prevIndex)
                     self.lstbx_library.itemconfig(self.prevIndex, bg="WHITE")
                     self.lstbx_library.itemconfig(self.myIndex, bg="YELLOW")
                 except:
                     pass
                 mixer.init()
                 mixer.music.load(self.songsName[self.myIndex])
-
                 mixer.music.play()
-                self.resumeSong()
+                # mixer.music.set_endevent()
+
+                # def invokeNextSong():
+                #     self.nextSong()
+                self.songLength = float(round(MP3(self.songsName[self.myIndex]).info.length)) + 2
+                self.timer = threading.Timer(self.songLength, self.nextSong)
+                self.timer.start()
+
+                # self.prgBar = Progressbar(self.frameScrubbar, length=320, orient=HORIZONTAL,
+                #                           maximum=100,
+                #                           value=0)
+                # self.prgBar.pack()
+
+                # self.prog = 0
+                self.progressTimer = threading.Timer(0, self.progressInc)
+                # self.progressTimer.setDaemon(TRUE)
+                self.progressTimer.start()
+
+
+                self.currentSongTitleArtist()
+
+                self.btn_play_pause.config(image=self.pauseImg, command=self.pauseSong)
+
+                # self.resumeSong()
+                # self.progress()
+
+                # print(mixer.music.get_busy())
                 # self.btn_play_pause.config(image=self.pauseImg, command=self.pauseSong)
+
+
+        def invokePlayNext(self):
+            self.songLength = (float(round(MP3(self.songsName[self.myIndex]).info.length)) - self.prog) + 2
+            self.timer = threading.Timer(self.songLength, self.nextSong)
+            self.timer.start()
 
         def pauseSong(self):
             mixer.music.pause()
+            self.isPaused = 1
+            # self.haltMusic = mixer.music.get_pos() / 100
+            # self.timer.cancel()
             self.btn_play_pause.config(image=self.playImg, command=self.resumeSong)
+            self.progressStop()
+
+            # while mixer.music.get_busy():
+            #     continue
+            # self.nextSong()
 
         def resumeSong(self):
+            # print(mixer.music.get_pos())
+            self.isPaused = 0
             mixer.music.unpause()
+            self.progressResume()
+            self.invokePlayNext()
+
+            # print(self.songLength-self.haltMusic)
+            # try:
+            #     self.timer = threading.Timer(self.songLength-self.haltMusic, self.nextSong)
+            #     self.timer.start()
+            # except:
+            #     pass
+
+            # self.progress()
             self.btn_play_pause.config(image=self.pauseImg, command=self.pauseSong)
 
         # _________________Next Methods_________________
 
-        def nextSong(self):
-            if (self.shuffleStatus == 0):
-                try:
-                    self.lstbx_library.itemconfig(self.prevIndex, bg="WHITE")
-                except:
-                    pass
-                self.prevIndex = self.myIndex
-                try:
-                    self.lstbx_library.itemconfig(self.myIndex, bg="WHITE")
-                except:
-                    pass
-                if (self.myIndex == len(self.songsName) - 1):
-                    self.myIndex = 0
-                else:
-                    self.myIndex += 1
+        def nextSong(self, arg = None):
+
+            # self.prgBar.destroy()
+            # print(self.isPaused)
+            # print(arg)
+            if(self.isPaused == 1 and arg != 1):
+                self.progressTimer.cancel()
+                return
+
+            self.exitStatus = 1
+            myt.sleep(1)
+            self.exitStatus = 0
+            self.prgBar.config(value=0)
+            self.prog = 0
+
+
+            # if self.timer == 1:
+            #     self.timer.cancel()
+            # print(self.repeatStatus)
+            if (self.repeatStatus == 0 and self.myIndex == len(self.songsName) - 1):
+                mixer.music.stop()
+            elif (self.repeatStatus == 1):
                 self.playSong()
-            elif (self.shuffleStatus == 1):
-                try:
-                    self.lstbx_library.itemconfig(self.prevIndex, bg="WHITE")
-                    self.lstbx_library.itemconfig(self.myIndex, bg="WHITE")
-                except:
-                    pass
-                self.shuffleOn()
-                self.playSong()
+            else:
+                if (self.shuffleStatus == 0):
+                    try:
+                        self.lstbx_library.itemconfig(self.prevIndex, bg="WHITE")
+                    except:
+                        pass
+                    self.prevIndex = self.myIndex
+                    try:
+                        self.lstbx_library.itemconfig(self.myIndex, bg="WHITE")
+                    except:
+                        pass
+                    if (self.myIndex == len(self.songsName) - 1):
+                        self.myIndex = 0
+                    else:
+                        self.myIndex += 1
+                    self.playSong()
+                elif (self.shuffleStatus == 1):
+                    try:
+                        self.lstbx_library.itemconfig(self.prevIndex, bg="WHITE")
+                        self.lstbx_library.itemconfig(self.myIndex, bg="WHITE")
+                    except:
+                        pass
+                    self.shuffleOn()
+                    self.playSong()
 
         # _________________Repeat Methods_________________
 
         def repeatOne(self):
+            self.repeatStatus = 1
             self.btn_repeat.config(image=self.repeatOneImg, command=self.repeatAll)
 
         def repeatAll(self):
+            self.repeatStatus = 2
             self.btn_repeat.config(image=self.repeatAllImg, command=self.repeatNorm)
 
         def repeatNorm(self):
+            self.repeatStatus = 0
             self.btn_repeat.config(image=self.repeatNormImg, command=self.repeatOne)
 
         # _________________Open Folder Methods_________________
@@ -336,8 +483,14 @@ if __name__ == '__main__':
                     if (files.endswith(".mp3")):
                         # print(files)
                         self.songsName.append(files)
+                        # try:
+                        #     self.songTitle.append(str(ID3(files)['TIT2'].text[0]))
+                        #     # self.songArtist.append(str(ID3(files)['TPE1'].text[0]))
+                        # except:
+                        #     self.songTitle.append("Unknown")
+                        # self.songArtist.append(str("Unknown"))
                         self.songsLoc.append(directory)
-                if(len(self.songsName) == 0):
+                if (len(self.songsName) == 0):
                     messagebox.showwarning("EMPTY FOLDER", "Music not found in this folder."
                                                            "\nPlease select a folder containing mp3 files.")
 
@@ -378,9 +531,17 @@ if __name__ == '__main__':
                 self.lstbx_library.insert(END, str(i + 1) + ". " + self.songsName[i])
                 self.lstbx_library.itemconfig(i, bg="WHITE")
             self.btn_library.config(command=self.destroy_Lstbx)
-            self.lstbx_library.itemconfig(self.myIndex, bg="YELLOW")
+            try:
+                self.lstbx_library.itemconfig(self.myIndex, bg="YELLOW")
+            except:
+                pass
 
         def invokeSong(self, event):
+            self.exitStatus = 1
+            myt.sleep(1)
+            self.exitStatus = 0
+            self.prgBar.config(value=0)
+            self.prog = 0
             self.lstbx_library.itemconfig(self.prevIndex, bg="WHITE")
             self.lstbx_library.itemconfig(self.myIndex, bg="WHITE")
             filterSongName = self.lstbx_library.get(ACTIVE)
@@ -394,6 +555,16 @@ if __name__ == '__main__':
             self.frm_libraryWindow.destroy()
             self.btn_library.config(command=self.myLibrary)
 
+        # _________________Title Methods_________________
+
+        def currentSongTitleArtist(self):
+            try:
+                songTitle = str(ID3(self.songsName[self.myIndex])['TIT2'].text[0]) \
+                            + "\n" + str(ID3(self.songsName[self.myIndex])['TPE1'].text[0])
+            except:
+                songTitle = str(self.songsName[self.myIndex]) + "\nUnknown"
+            self.lbl_TitleArtist.config(text=songTitle)
+
         # _________________Search Methods_________________
 
         def searchAndPlay(self, event=None):
@@ -404,6 +575,12 @@ if __name__ == '__main__':
                 else:
                     temp = int(getIndex)
                     if (0 < temp <= len(self.songsName)):
+                        self.exitStatus = 1
+                        myt.sleep(1)
+                        self.exitStatus = 0
+                        self.prgBar.config(value=0)
+                        self.prog = 0
+                        self.prevIndex = self.myIndex
                         self.myIndex = temp - 1
                         self.playSong()
                     else:
@@ -430,4 +607,17 @@ if __name__ == '__main__':
     controls = MusicPlayer()
     controls.ControlWindow(root)
 
+
+    def on_closing():
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            mixer.music.stop()
+            try:
+                controls.timer.cancel()
+                controls.timer.join()
+            except:
+                pass
+            root.destroy()
+
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
