@@ -15,10 +15,7 @@ import time as myt
 import stagger
 from PIL import Image, ImageTk, ImageSequence
 
-
-
 timer = 0
-
 
 if __name__ == '__main__':
     root = Tk()
@@ -26,11 +23,13 @@ if __name__ == '__main__':
     root.title("MUSIC")
     root.iconbitmap(r"Images/Music_Player.ico")
     root.resizable(False, False)
+    # root.lift()
+    root.call('wm', 'attributes', '.', '-topmost', '1')
 
 
     # root.minsize
 
-    # root.attributes("-alpha",0.92)
+    # root.attributes("-alpha",0.75)
 
     class MusicPlayer():
 
@@ -54,6 +53,17 @@ if __name__ == '__main__':
         volumeOffImg = PhotoImage(file="Images/Volume_Off.png")
         selectVolumeImg = PhotoImage(file="Images/Select_Volume.png")
         searchImg = PhotoImage(file="Images/Search.png")
+        windowImg = PhotoImage(file="Images/window.png")
+        floatPlayImg = PhotoImage(file="Images/FloatPlay.png")
+        floatPauseImg = PhotoImage(file="Images/FloatPause.png")
+        floatPreviousImg = PhotoImage(file="Images/FloatPrevious.png")
+        floatNextImg = PhotoImage(file="Images/FloatNext.png")
+        floatShuffleOnImg = PhotoImage(file="Images/FloatShuffle_On.png")
+        floatShuffleOffImg = PhotoImage(file="Images/FloatShuffle_Off.png")
+        floatRepeatImg = PhotoImage(file="Images/FloatRepeat.png")
+        floatRepeatOneImg = PhotoImage(file="Images/FloatRepeat_One.png")
+        floatRepeatAllImg = PhotoImage(file="Images/FloatRepeat_All.png")
+
         # giffy = PhotoImage(file="Images/spec.gif")
         # starGif = PhotoImage(file="Images/Stars.gif")
 
@@ -170,7 +180,7 @@ if __name__ == '__main__':
             self.frameTitleArtist = Frame(root, bg="AQUA", height=30)
             self.frameTitleArtist.pack(fill=BOTH, expand=TRUE)
 
-            self.lbl_TitleArtist = Label(self.frameTitleArtist, text="Name\nArtist\nAlbum", relief=RIDGE)
+            self.lbl_TitleArtist = Label(self.frameTitleArtist, text="Name\nArtist\nAlbum", bg="WHITE", relief=RIDGE)
             self.lbl_TitleArtist.pack(fill=BOTH, expand=TRUE)
 
             # self.frameAlbum = Frame(root, bg="BLACK", height=20)
@@ -192,10 +202,10 @@ if __name__ == '__main__':
             # self.canvas = Canvas(self.frameScrubbar, width=236, height=18)
             # self.canvas.grid(row=1, column=1)
 
-            self.lbl_prgTime = Label(self.frameScrubbar, text="--:--:--")
+            self.lbl_prgTime = Label(self.frameScrubbar, width=6, text="--:--:--")
             self.lbl_prgTime.grid(row=1, column=0, sticky=W)
 
-            self.lbl_totalTime = Label(self.frameScrubbar, text="--:--:--")
+            self.lbl_totalTime = Label(self.frameScrubbar, width=6, text="--:--:--")
             self.lbl_totalTime.grid(row=1, column=2, sticky=E)
 
             self.frameControl = Frame(root, bg="INDIGO", height=100)
@@ -217,7 +227,7 @@ if __name__ == '__main__':
             self.btn_play_pause.grid(row=0, column=2)
 
             self.btn_next = Button(self.frameControl, text="NEXT", image=self.nextImg, relief=FLAT, height=50, width=62,
-                                   command=lambda : self.nextSong(1))
+                                   command=lambda: self.nextSong(1))
             self.btn_next.grid(row=0, column=3)
             # self.btn_next.bind("<Button-1>", lambda x : self.nextSong(1))
 
@@ -240,7 +250,7 @@ if __name__ == '__main__':
             self.btn_library.pack()
 
             self.frm_search = Frame(root, width=200, height=25)
-            self.frm_search.place(relx=0.5, rely=0.11, anchor=CENTER)
+            self.frm_search.place(relx=0.5, rely=0.105, anchor=CENTER)
             # self.frm_search.__setattr__('-alpha', 0.9)
 
             self.entry_search = Entry(self.frm_search, relief=FLAT, command=None)
@@ -250,15 +260,25 @@ if __name__ == '__main__':
             self.btn_Search = Button(self.frm_search, image=self.searchImg, relief=FLAT, command=self.searchAndPlay)
             self.btn_Search.pack()
 
+            self.frmGif = Frame(root)
+            self.frmGif.place(relx=0.14, rely=0.853)
+            self.myGIf()
+
+            self.frm_Min = Frame(root)
+            self.frm_Min.place(relx=0.77, rely=0.085)
+
+            self.btn_min = Button(self.frm_Min, image=self.windowImg, relief=FLAT, command=self.floatingWin)
+            self.btn_min.pack()
 
         # _________________Progress Bar Methods_________________
 
-        def seek(self, event):
+        def seek(self, event):  # Unused
             self.exitStatus = 1
             myt.sleep(1)
             temp = (event.x / 830) * 100
             cur_pos = int((temp * round(MP3(self.songsName[self.myIndex]).info.length)) / 100)
-            self.cur_Val = int((cur_pos * round(MP3(self.songsName[self.myIndex]).info.length)) / 100) + ((2*cur_pos)/100)
+            self.cur_Val = int((cur_pos * round(MP3(self.songsName[self.myIndex]).info.length)) / 100) + (
+                        (2 * cur_pos) / 100)
             self.prog = self.cur_Val
             mixer.init()
             mixer.music.stop()
@@ -268,7 +288,6 @@ if __name__ == '__main__':
             self.exitStatus = 0
             self.progressTimer = threading.Timer(0, self.progressInc)
             self.progressTimer.start()
-
 
             # self.exitStatus = 1
             # self.prgBar.config(value=(self.prog / round(MP3(self.songsName[self.myIndex]).info.length)) * 100)
@@ -285,8 +304,6 @@ if __name__ == '__main__':
             # self.timer = threading.Timer(self.songLength, self.nextSong)
             # self.timer.start()
             # self.exitStatus = 1
-
-
 
         # def myGIf(self):
         #     self.canvas = Canvas(root, width=250, height=18)
@@ -318,7 +335,7 @@ if __name__ == '__main__':
                 total_t_format = '{:02d}:{:02d}:{:02d}'.format(t_h_time, t_m_time, t_s_time)
                 self.lbl_totalTime.config(text=total_t_format)
                 while (self.prog <= songLen):
-                    if(self.exitStatus):
+                    if (self.exitStatus):
                         return
                     else:
                         self.prgBar.config(value=(self.prog / songLen) * 100)
@@ -337,7 +354,7 @@ if __name__ == '__main__':
         def progressStop(self):
             self.exitStatus = 1
             self.cur_Val = self.prog
-            self.prgBar.config(value=(self.prog/round(MP3(self.songsName[self.myIndex]).info.length))*100)
+            self.prgBar.config(value=(self.prog / round(MP3(self.songsName[self.myIndex]).info.length)) * 100)
 
         def progressResume(self):
             self.exitStatus = 0
@@ -352,18 +369,29 @@ if __name__ == '__main__':
             self.shuffleStatus = 1
             # self.lstbx_library.itemconfig(self.myIndex,bg="WHITE")
             self.prevIndex = self.myIndex
-            self.myIndex = random.randint(0, len(self.songsName) - 1)
-            # self.playSong()
+            try:
+                self.myIndex = random.randint(0, len(self.songsName) - 1)
+            except:
+                pass
+                # self.playSong()
+            try:
+                self.floatbtn_Shuffle.config(text="S On")
+            except:
+                pass
             self.btn_shuffle.config(image=self.shuffleOnImg, command=self.shuffleOff)
 
         def shuffleOff(self):
             self.shuffleStatus = 0
+            try:
+                self.floatbtn_Shuffle.config(text="S Off")
+            except:
+                pass
             self.btn_shuffle.config(image=self.shuffleOffImg, command=self.shuffleOn)
 
         # _________________Previous Methods_________________
 
         def previousSong(self):
-            if(self.prog > 6):
+            if (self.prog > 6):
                 self.exitStatus = 1
                 myt.sleep(1)
                 self.exitStatus = 0
@@ -451,6 +479,8 @@ if __name__ == '__main__':
 
                 # self.myGIf()  # Error
 
+
+
                 self.songLength = float(round(MP3(self.songsName[self.myIndex]).info.length)) + 2
                 self.timer = threading.Timer(self.songLength, self.nextSong)
                 self.timer.start()
@@ -469,15 +499,27 @@ if __name__ == '__main__':
                 self.juststarted = 0
                 self.btn_play_pause.config(image=self.pauseImg, command=self.pauseSong)
 
+                try:
+                    self.floatSongName = EasyID3(self.songsName[self.myIndex])['title'][0]
+                except KeyError:
+                    self.floatSongName = self.songsName[self.myIndex]
+                except:
+                    self.floatSongName = "Song Name"
+
+                try:
+                    self.floatLbl_SongName.config(text=self.floatSongName)
+                except:
+                    # print("Executed")
+                    pass
+
                 # self.resumeSong()
                 # self.progress()
 
                 # print(mixer.music.get_busy())
                 # self.btn_play_pause.config(image=self.pauseImg, command=self.pauseSong)
 
-
         def invokePlayNext(self):
-            if(self.myIndex != len(self.songsName)-1):
+            if (self.myIndex != len(self.songsName) - 1):
                 self.songLength = (float(round(MP3(self.songsName[self.myIndex]).info.length)) - self.prog) + 2
                 self.timer = threading.Timer(self.songLength, self.nextSong)
                 self.timer.start()
@@ -487,6 +529,10 @@ if __name__ == '__main__':
             self.isPaused = 1
             # self.haltMusic = mixer.music.get_pos() / 100
             # self.timer.cancel()
+            try:
+                self.floatbtn_PlayPause.config(text="|>")
+            except:
+                pass
             self.btn_play_pause.config(image=self.playImg, command=self.resumeSong)
             self.progressStop()
 
@@ -509,36 +555,45 @@ if __name__ == '__main__':
             #     pass
 
             # self.progress()
+            try:
+                self.floatbtn_PlayPause.config(text="||")
+            except:
+                pass
             self.btn_play_pause.config(image=self.pauseImg, command=self.pauseSong)
 
         # _________________Next Methods_________________
 
-        def nextSong(self, arg = None):
+        def nextSong(self, arg=None):
 
             # self.prgBar.destroy()
             # print(self.isPaused)
             # print(arg)
 
             # Prevent from unnecessary threading invoke
-            if(self.isPaused == 1 and arg != 1):
+            if (self.isPaused == 1 and arg != 1):
                 # print("1")
                 self.progressTimer.cancel()
                 return
 
-            if(self.shuffleStatus == 1):
+            # if(self.shuffleStatus == 1):
+            try:
                 if (self.isPaused == 0 and self.prog < round(
-                        MP3(self.songsName[self.prevIndex]).info.length) and arg != 1):
-                    # print(self.isPaused, self.prog, round(MP3(self.songsName[self.myIndex]).info.length))
+                        MP3(self.songsName[self.myIndex]).info.length) and arg != 1):
+                    # print(self.prog < round(MP3(self.songsName[self.myIndex]).info.length))
+                    # print(self.isPaused, self.prog, round(MP3(self.songsName[self.myIndex]).info.length)-2)
                     # print("invoked")
+                    # print(self.myIndex)
                     # print("2")
                     return
-            else:
-                if(self.isPaused == 0 and self.prog < round(MP3(self.songsName[self.myIndex]).info.length) and arg != 1):
-                    # print(self.isPaused, self.prog, round(MP3(self.songsName[self.myIndex]).info.length))
-                    # print("invoked")
-                    # print("3")
-                    return
-            # print(self.prog)
+                    # else:
+                    #     if(self.isPaused == 0 and self.prog < round(MP3(self.songsName[self.myIndex]).info.length) and arg != 1):
+                    #         # print(self.isPaused, self.prog, round(MP3(self.songsName[self.myIndex]).info.length))
+                    #         # print("invoked")
+                    #         print("3")
+                    #         return
+                    # print(self.prog)
+            except:
+                pass
 
             self.exitStatus = 1
             myt.sleep(1)
@@ -546,11 +601,10 @@ if __name__ == '__main__':
             self.prgBar.config(value=0)
             self.prog = 0
 
-
             # if self.timer == 1:
             #     self.timer.cancel()
             # print(self.repeatStatus)
-            if (self.repeatStatus == 0 and self.myIndex == len(self.songsName) - 1):
+            if (self.repeatStatus == 0 and self.myIndex == len(self.songsName) - 1 and self.shuffleStatus == 0):
                 mixer.music.stop()
             elif (self.repeatStatus == 1):
                 self.playSong()
@@ -583,14 +637,26 @@ if __name__ == '__main__':
 
         def repeatOne(self):
             self.repeatStatus = 1
+            try:
+                self.floatbtn_Repeat.config(text="R One")
+            except:
+                pass
             self.btn_repeat.config(image=self.repeatOneImg, command=self.repeatAll)
 
         def repeatAll(self):
             self.repeatStatus = 2
+            try:
+                self.floatbtn_Repeat.config(text="R All")
+            except:
+                pass
             self.btn_repeat.config(image=self.repeatAllImg, command=self.repeatNorm)
 
         def repeatNorm(self):
             self.repeatStatus = 0
+            try:
+                self.floatbtn_Repeat.config(text="R Norm")
+            except:
+                pass
             self.btn_repeat.config(image=self.repeatNormImg, command=self.repeatOne)
 
         # _________________Open Folder Methods_________________
@@ -631,7 +697,7 @@ if __name__ == '__main__':
 
         def myLibrary(self):
             try:
-                if(len(self.songsName)==0):
+                if (len(self.songsName) == 0):
                     self.openFolder()
             except:
                 pass
@@ -689,7 +755,7 @@ if __name__ == '__main__':
                 # basewidth = 340
                 # wpercent = (basewidth / float(cover_image.size[0]))
                 # hsize = int((float(cover_image.size[1]) * float(wpercent)))
-                img = cover_image.resize((340,340), Image.ANTIALIAS)
+                img = cover_image.resize((340, 340), Image.ANTIALIAS)
                 # img.save('temp.jpg')
                 cur_photo = ImageTk.PhotoImage(img)
                 self.lbl_coverPic.config(image=cur_photo)
@@ -697,16 +763,27 @@ if __name__ == '__main__':
             except:
                 self.lbl_coverPic.config(image=self.coverImg)
 
-
         def currentSongTitleArtist(self):
             self.currentCover()
             try:
                 tag = EasyID3(self.songsName[self.myIndex])
                 # songTitle = str(ID3(self.songsName[self.myIndex])['TIT2'].text[0]) \
                 #             + "\n" + str(ID3(self.songsName[self.myIndex])['TPE1'].text[0])
-                songTitle = str(self.myIndex+1)+". "+str(tag['title'][0])+"\nArtist: "+str(tag['artist'][0])+"\nAlbum: "+str(tag['album'][0])
+                songTitle = str(self.myIndex + 1) + ". " + str(tag['title'][0]) + "\nArtist: " + str(
+                    tag['artist'][0]) + "\nAlbum: " + str(tag['album'][0])
             except:
-                songTitle = str(self.myIndex+1)+". "+str(self.songsName[self.myIndex]) + "\nArtist: Unknown\nAlbum: Unknown"
+                songTitle = str(self.myIndex + 1) + ". " + str(
+                    self.songsName[self.myIndex]) + "\nArtist: Unknown\nAlbum: Unknown"
+
+            # try:
+            #     floatSongName = EasyID3(self.songsName[self.myIndex])['title'][0]
+            #     self.floatLbl_SongName.config(text=floatSongName)
+            # except KeyError:
+            #     floatSongName = self.songsName[self.myIndex]
+            #     self.floatLbl_SongName.config(text=floatSongName)
+            # except:
+            #     floatSongName = "Song Name"
+            #     self.floatLbl_SongName.config(text=floatSongName)
             self.lbl_TitleArtist.config(text=songTitle)
 
         # _________________Search Methods_________________
@@ -735,7 +812,7 @@ if __name__ == '__main__':
         def keyInvoke(self, event):
             # print(ord(event.char))
             try:
-                if (event.char == " " and self.juststarted==1 ):
+                if (event.char == " " and self.juststarted == 1):
                     # print("PLAY")
                     self.playSong()
                 elif (event.char == " " and self.isPaused == 1):
@@ -749,7 +826,99 @@ if __name__ == '__main__':
             except:
                 pass
 
+        def myGIf(self):
+            self.canvas = Canvas(self.frmGif, width=240, height=18)
+            self.canvas.grid(row=1, column=1)
+            self.sequence = [ImageTk.PhotoImage(self.img.resize((240, 18), Image.ANTIALIAS))
+                             for self.img in ImageSequence.Iterator(Image.open("Images/Specturm.gif"))]
+            self.image = self.canvas.create_image(120, 9, image=self.sequence[0])
+            self.animate(1)
 
+        def animate(self, counter):
+            self.canvas.itemconfig(self.image, image=self.sequence[counter])
+            root.after(40, lambda: self.animate((counter + 1) % len(self.sequence)))
+
+        def destroy_Gif(self):
+            self.frmGif.destroy()
+
+        def floatingWin(self):
+            root.iconify()
+            try:
+                self.floatroot.destroy()
+            except:
+                pass
+            self.floatroot = Tk()
+            # self.floatroot.iconbitmap("Images/Music_Player.ico")
+            self.floatroot.geometry("260x50")
+            self.floatroot.resizable(False,False)
+            self.floatroot.call('wm', 'attributes', '.', '-topmost', '1')
+            self.floatroot.title("Quiick Controller")
+            # print("Current File Name : ", os.path.realpath(__file__))
+            # ImagePath = str(os.path.realpath(__file__))[:-14] + "Images\\"
+            # print(ImagePath)
+            # floatPlayImg = PhotoImage(file=ImagePath+"FloatPlay.png")
+            # floatPauseImg = PhotoImage(file="Images/FloatPause.png")
+            # floatPreviousImg = PhotoImage(file="Images/FloatPrevious.png")
+            # floatNextImg = PhotoImage(file="Images/FloatNext.png")
+            # floatShuffleOnImg = PhotoImage(file="Images/FloatShuffle_On.png")
+            # floatShuffleOffImg = PhotoImage(file="Images/FloatShuffle_Off.png")
+            # floatRepeatImg = PhotoImage(file="Images/FloatRepeat.png")
+            # floatRepeatOneImg = PhotoImage(file="Images/FloatRepeat_One.png")
+            # floatRepeatAllImg = PhotoImage(file="Images/FloatRepeat_All.png")
+
+            self.floatFrame_SongName = Frame(self.floatroot)
+            self.floatFrame_SongName.pack(fill=BOTH, expand=TRUE)
+            # songName = EasyID3(self.songsName[self.myIndex])['title'][0]
+
+            try:
+                self.floatSongName = EasyID3(self.songsName[self.myIndex])['title'][0]
+            except KeyError:
+                self.floatSongName = self.songsName[self.myIndex]
+            except:
+                self.floatSongName = "Song Name"
+
+            self.floatLbl_SongName = Label(self.floatFrame_SongName, width=40, text=self.floatSongName, anchor=W, relief=RIDGE)
+            self.floatLbl_SongName.pack()
+
+            self.floatLbl_Controllers = Frame(self.floatroot)
+            self.floatLbl_Controllers.pack(fill=BOTH, expand=TRUE)
+
+            self.floatbtn_Shuffle = Button(self.floatLbl_Controllers, width=6,
+                                           relief=FLAT,text="S Off",
+                                           command=lambda : self.shuffleOn() if(self.shuffleStatus == 0) else self.shuffleOff())
+            self.floatbtn_Shuffle.grid(row=0, column=0)
+
+            self.floatbtn_Previous = Button(self.floatLbl_Controllers, width=6,
+                                            relief=FLAT,text="<",command=lambda : self.previousSong())
+            self.floatbtn_Previous.grid(row=0, column=1)
+
+            if(self.isPaused == 0):
+                self.playTxt = "||"
+            else:
+                self.playTxt = "|>"
+
+            self.floatbtn_PlayPause = Button(self.floatLbl_Controllers, width=6,
+                                             relief=FLAT, text=self.playTxt,
+                                             command=lambda : self.playSong() if(self.juststarted == 1) else self.resumeSong() if(self.isPaused==1) else self.pauseSong())
+            self.floatbtn_PlayPause.grid(row=0, column=2)
+
+            self.floatbtn_Next = Button(self.floatLbl_Controllers, width=6,
+                                        relief=FLAT, text=">", command=lambda : self.nextSong(1))
+            self.floatbtn_Next.grid(row=0, column=3)
+
+            self.floatbtn_Repeat = Button(self.floatLbl_Controllers, width=6,
+                                          relief=FLAT, text="R Norm",
+                                          command=lambda: self.repeatOne() if(self.repeatStatus == 0) else self.repeatNorm() if(self.repeatStatus == 2) else self.repeatAll())
+            self.floatbtn_Repeat.grid(row=0, column=4)
+
+            def float_on_closing():
+                root.deiconify()
+                self.floatroot.destroy()
+                pass
+
+            self.floatroot.protocol("WM_DELETE_WINDOW", float_on_closing)
+
+            self.floatroot.mainloop()
 
 
     volume = MusicPlayer()
@@ -777,10 +946,12 @@ if __name__ == '__main__':
     root.bind("<Key>", lambda x: controls.keyInvoke(x))
 
 
-
-
-
     def on_closing():
+        try:
+            controls.floatroot.destroy()
+        except:
+            pass
+
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             mixer.music.stop()
             try:
@@ -792,4 +963,6 @@ if __name__ == '__main__':
 
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
+    # root.protocol("WM_MINIMIZE_WINDOW", lambda x: print("Minimized"))
+    # root.iconify()
     root.mainloop()
