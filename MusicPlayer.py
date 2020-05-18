@@ -842,7 +842,8 @@ if __name__ == '__main__':
             self.frmGif.destroy()
 
         def floatingWin(self):
-            root.iconify()
+            # root.iconify()
+            root.withdraw()
             try:
                 self.floatroot.destroy()
             except:
@@ -850,6 +851,7 @@ if __name__ == '__main__':
             self.floatroot = Tk()
             # self.floatroot.iconbitmap("Images/Music_Player.ico")
             self.floatroot.geometry("260x50")
+            self.floatroot.attributes("-alpha", 0.80)
             self.floatroot.resizable(False,False)
             self.floatroot.call('wm', 'attributes', '.', '-topmost', '1')
             self.floatroot.title("Quiick Controller")
@@ -883,8 +885,13 @@ if __name__ == '__main__':
             self.floatLbl_Controllers = Frame(self.floatroot)
             self.floatLbl_Controllers.pack(fill=BOTH, expand=TRUE)
 
+            if (self.shuffleStatus):
+                shuffle_icon = "S On"
+            else:
+                shuffle_icon = "S Off"
+
             self.floatbtn_Shuffle = Button(self.floatLbl_Controllers, width=6,
-                                           relief=FLAT,text="S Off",
+                                           relief=FLAT,text=shuffle_icon,
                                            command=lambda : self.shuffleOn() if(self.shuffleStatus == 0) else self.shuffleOff())
             self.floatbtn_Shuffle.grid(row=0, column=0)
 
@@ -906,12 +913,22 @@ if __name__ == '__main__':
                                         relief=FLAT, text=">", command=lambda : self.nextSong(1))
             self.floatbtn_Next.grid(row=0, column=3)
 
+            if(self.repeatStatus == 0):
+                repeat_icon = "R Norm"
+            elif(self.repeatStatus == 1):
+                repeat_icon = "R One"
+            elif(self.repeatStatus == 2):
+                repeat_icon = "R All"
+
+
             self.floatbtn_Repeat = Button(self.floatLbl_Controllers, width=6,
-                                          relief=FLAT, text="R Norm",
+                                          relief=FLAT, text=repeat_icon,
                                           command=lambda: self.repeatOne() if(self.repeatStatus == 0) else self.repeatNorm() if(self.repeatStatus == 2) else self.repeatAll())
             self.floatbtn_Repeat.grid(row=0, column=4)
 
             def float_on_closing():
+                # root.deiconify()
+                root.update()
                 root.deiconify()
                 self.floatroot.destroy()
                 pass
