@@ -3,3 +3,16 @@ This is an elegant looking music player in which you can play music from your mu
 
 Please Make sure to put the MusicPlayer.py and Images folder in same directory and make sure to install pygame before run it as it is dependencies for the Music Player.
 To install pygame open cmd and enter "pip install pygame"
+
+Required Libraries need to install are given below:
+pygame
+mutagen
+stagger
+PIL (pillow)
+
+Other libraries required are given below:
+io
+tkinter
+random
+threading
+time
